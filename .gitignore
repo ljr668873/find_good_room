@@ -1,0 +1,16 @@
+# 环境变量与密码，绝不入库
+deploy/.env
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
+dist/
+
+# 运行时数据
+server/uploads/
+*.log

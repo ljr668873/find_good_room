@@ -1,0 +1,10 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sqlalchemy>=2.0
+pymysql>=1.1
+cryptography>=42
+alembic>=1.13
+pyjwt>=2.8
+bcrypt>=4.1
+pillow>=10
+python-multipart>=0.0.9
