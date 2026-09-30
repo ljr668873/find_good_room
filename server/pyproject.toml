@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "find-good-room-server"
 version = "0.1.0"
 description = "城中村租房平台 API"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
