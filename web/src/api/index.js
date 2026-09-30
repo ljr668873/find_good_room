@@ -54,6 +54,9 @@ export const deleteAdminLandlord = (id) => http.delete(`/admin/landlords/${id}`)
 export const getStatsSummary = (date) => http.get("/admin/stats/summary", { params: { date } });
 export const getStatsHourly = (date) => http.get("/admin/stats/hourly", { params: { date } });
 export const getStatsTopListings = (params) => http.get("/admin/stats/top-listings", { params });
+export const getAdminListings = (params) => http.get("/admin/listings", { params });
+export const deleteAdminListings = (ids) => http.delete("/admin/listings", { data: { ids } });
+export const deleteLandlordListings = (id) => http.delete(`/admin/landlords/${id}/listings`);
 export const getAdminAds = () => http.get("/admin/ads");
 export const createAdminAd = (data) => http.post("/admin/ads", data);
 export const updateAdminAd = (id, data) => http.put(`/admin/ads/${id}`, data);

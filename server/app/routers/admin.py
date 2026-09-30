@@ -1,8 +1,8 @@
-"""管理员接口：举报队列、房东账号 CRUD、访问统计。"""
+"""管理员接口：举报队列、房东账号 CRUD、房源管理、访问统计、广告。"""
 from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -219,6 +219,74 @@ def stats_top_listings(
                 listing_id=listing_id, title=listing.title, village=listing.village, count=count,
             ))
     return out
+
+
+# ---- 房源管理 ----
+
+@router.get("/listings", response_model=schemas.AdminListingPage)
+def admin_listing_list(
+    keyword: str | None = Query(None, max_length=32),
+    status: str | None = Query(None, pattern="^(active|rented|offline)$"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    """管理端房源列表：全状态可见，带房东用户名。"""
+    cond = []
+    if status:
+        cond.append(models.Listing.status == status)
+    if keyword:
+        kw = f"%{keyword}%"
+        cond.append(
+            models.Listing.title.like(kw)
+            | models.Listing.village.like(kw)
+            | models.Listing.city.like(kw)
+            | models.User.username.like(kw)
+        )
+    stmt = (
+        select(models.Listing, models.User)
+        .join(models.User, models.Listing.landlord_id == models.User.id)
+        .where(*cond)
+    )
+    total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery()))
+    rows = db.execute(
+        stmt.order_by(models.Listing.id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    ).all()
+    items = []
+    for listing, user in rows:
+        item = schemas.AdminListingItem.model_validate(listing)
+        item.landlord_username = user.username
+        items.append(item)
+    return schemas.AdminListingPage(items=items, total=total, page=page, page_size=page_size)
+
+
+def _delete_listings(db: Session, listing_ids: list[int]) -> int:
+    """删房源连带相关举报（reports 有 FK）。返回删除条数。"""
+    if not listing_ids:
+        return 0
+    db.execute(delete(models.Report).where(models.Report.listing_id.in_(listing_ids)))
+    db.execute(delete(models.Listing).where(models.Listing.id.in_(listing_ids)))
+    db.commit()
+    return len(listing_ids)
+
+
+@router.delete("/listings")
+def admin_listings_delete(data: schemas.IdsIn, db: Session = Depends(get_db)):
+    n = _delete_listings(db, data.ids)
+    return {"ok": True, "deleted": n}
+
+
+@router.delete("/landlords/{user_id}/listings")
+def admin_delete_landlord_listings(user_id: int, db: Session = Depends(get_db)):
+    """按房东删除名下全部房源。"""
+    user = db.get(models.User, user_id)
+    if user is None:
+        raise HTTPException(404, "账号不存在")
+    ids = db.scalars(select(models.Listing.id).where(models.Listing.landlord_id == user_id)).all()
+    n = _delete_listings(db, ids)
+    return {"ok": True, "deleted": n}
 
 
 # ---- 广告管理 ----

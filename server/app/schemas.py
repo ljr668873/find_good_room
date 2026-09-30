@@ -244,3 +244,20 @@ class AdOut(AdBase):
     id: int
     click_count: int
     created_at: datetime
+
+
+# ---- 管理员：房源管理 ----
+
+class IdsIn(BaseModel):
+    ids: list[int] = Field(min_length=1, max_length=200)
+
+
+class AdminListingItem(ListingOut):
+    landlord_username: str = ""  # validate 后由路由填充
+
+
+class AdminListingPage(BaseModel):
+    items: list[AdminListingItem]
+    total: int
+    page: int
+    page_size: int

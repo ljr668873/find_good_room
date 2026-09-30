@@ -4,6 +4,7 @@ import { showConfirmDialog, showFailToast, showSuccessToast } from "vant";
 import {
   createAdminLandlord,
   deleteAdminLandlord,
+  deleteLandlordListings,
   getAdminLandlords,
   updateAdminLandlord,
 } from "../api";
@@ -85,6 +86,24 @@ async function remove(u) {
     /* 拦截器已 toast */
   }
 }
+
+async function clearListings(u) {
+  try {
+    await showConfirmDialog({
+      title: "删除全部房源",
+      message: `确认删除 ${u.username} 名下全部 ${u.listing_count} 套房源？连带删除相关举报，不可恢复。`,
+    });
+  } catch {
+    return;
+  }
+  try {
+    const res = await deleteLandlordListings(u.id);
+    showSuccessToast(`已删除 ${res.deleted} 套`);
+    load();
+  } catch {
+    /* 拦截器已 toast */
+  }
+}
 </script>
 
 <template>
@@ -108,6 +127,7 @@ async function remove(u) {
         <div class="meta">房源 {{ u.listing_count }} 套 · {{ new Date(u.created_at).toLocaleDateString() }}</div>
       </div>
       <div class="ops">
+        <span v-if="u.listing_count" class="warn" @click="clearListings(u)">删房源({{ u.listing_count }})</span>
         <span @click="openEdit(u)">编辑</span>
         <span v-if="!u.is_admin" class="danger" @click="remove(u)">删除</span>
       </div>
@@ -178,5 +198,8 @@ async function remove(u) {
 }
 .ops .danger {
   color: #ee0a24;
+}
+.ops .warn {
+  color: #ff976a;
 }
 </style>

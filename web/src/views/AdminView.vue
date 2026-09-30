@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { forceListingStatus, getAdminReports, resolveReport } from "../api";
 import AdminAdsView from "./AdminAdsView.vue";
 import AdminLandlordsView from "./AdminLandlordsView.vue";
+import AdminListingsView from "./AdminListingsView.vue";
 import AdminStatsView from "./AdminStatsView.vue";
 
 const activeTab = ref(0);
@@ -69,6 +70,10 @@ async function offline(listingId) {
             </van-button>
           </div>
         </div>
+      </van-tab>
+
+      <van-tab title="房源管理">
+        <AdminListingsView />
       </van-tab>
 
       <van-tab title="房东账号">
