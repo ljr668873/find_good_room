@@ -13,3 +13,4 @@ Requires-Dist: pyjwt>=2.8
 Requires-Dist: bcrypt>=4.1
 Requires-Dist: pillow>=10
 Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: requests>=2.31

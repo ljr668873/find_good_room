@@ -110,6 +110,8 @@ systemctl restart find-good-room
 
 # ---- nginx ----
 echo "[6/6] 配置 nginx ..."
+# 移除发行版自带 default 站点：其 default_server + server_name _ 会抢走 IP 直连流量（显示欢迎页而非本站）
+[ -f /etc/nginx/conf.d/default.conf ] && rm -f /etc/nginx/conf.d/default.conf && echo "      已移除 nginx 默认站点 default.conf"
 cat > /etc/nginx/conf.d/find-good-room.conf <<EOF
 server {
     listen $HTTP_PORT;
@@ -125,6 +127,9 @@ server {
     location /uploads/ {
         proxy_pass http://127.0.0.1:$API_PORT;
     }
+    location /static/ {
+        proxy_pass http://127.0.0.1:$API_PORT;
+    }
     location / {
         root $INSTALL_DIR/web-dist;
         index index.html;
@@ -134,6 +139,18 @@ server {
 EOF
 nginx -t
 systemctl reload nginx
+
+# SELinux 提示（CentOS/RHEL enforcing 下 nginx 读 /opt 静态文件会 403）
+if command -v getenforce >/dev/null && [ "$(getenforce)" = "Enforcing" ]; then
+  echo "⚠ SELinux 为 Enforcing：若站点静态文件 403，执行"
+  echo "  sudo chcon -R -t httpd_sys_content_t $INSTALL_DIR/web-dist"
+fi
+# ---- 旧 dev 进程与端口提示 ----
+if command -v ss >/dev/null && ss -ltn 2>/dev/null | grep -q ":$API_PORT "; then
+  echo "⚠ 端口 $API_PORT 已被占用，请确认不是旧的 dev 后端进程：ss -ltnp | grep $API_PORT"
+fi
+echo "提示：若之前的 vite dev / uvicorn dev 还在跑，记得停掉（避免双后端、旧代码）"
+echo "提示：云服务器安全组/防火墙需放行对外端口 $HTTP_PORT"
 
 # ---- 健康检查 ----
 sleep 2

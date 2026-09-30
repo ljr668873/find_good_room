@@ -35,14 +35,13 @@ docker exec mysql-local mysql -u"$DB_USER" -p"$DB_PASSWORD" \
   -e "CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci" 2>/dev/null \
   || echo "（跳过建库：非 mysql-local 容器时请自行建库 $DB_NAME）"
 
-# ---- 2. 后端依赖 ----
+# ---- 2. 后端依赖（每次执行安装：幂等，拉新代码新增依赖自动补齐）----
 if [ ! -x server/.venv/bin/python ]; then
-  echo "[2/5] 创建后端 venv 并安装依赖 ..."
+  echo "[2/5] 创建后端 venv ..."
   python3 -m venv server/.venv
-  server/.venv/bin/pip install -q -e server
-else
-  echo "[2/5] 后端依赖就绪"
 fi
+echo "[2/5] 后端依赖同步 ..."
+server/.venv/bin/pip install -q -e server
 
 # ---- 3. 数据库迁移 + 种子（幂等）----
 echo "[3/5] 迁移数据库 ..."
@@ -50,13 +49,9 @@ echo "[3/5] 迁移数据库 ..."
 echo "[3/5] 种子数据 ..."
 (cd server && .venv/bin/python -m scripts.seed)
 
-# ---- 4. 前端依赖 ----
-if [ ! -d web/node_modules ]; then
-  echo "[4/5] 安装前端依赖 ..."
-  (cd web && npm install --silent)
-else
-  echo "[4/5] 前端依赖就绪"
-fi
+# ---- 4. 前端依赖（每次执行安装：幂等，package.json 变更自动补齐）----
+echo "[4/5] 前端依赖同步 ..."
+(cd web && npm install --silent)
 
 # ---- 4.5 端口预检：按端口找占用 PID，本项目旧实例才清理，其它程序报错退出 ----
 port_busy() { lsof -nP -iTCP:"$1" -sTCP:LISTEN 2>/dev/null | grep -q LISTEN; }
