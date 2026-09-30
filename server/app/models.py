@@ -74,3 +74,42 @@ class Report(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     __table_args__ = (Index("idx_status", "status"),)
+
+
+class VisitLog(Base):
+    """租客访问明细：visitor_key = sha256(ip+ua) 前 16 位，统计时 DISTINCT 去重。
+
+    listing_id 为空 = 列表页访问；非空 = 房源详情访问（供每小时排行）。
+    """
+
+    __tablename__ = "visit_logs"
+
+    id: Mapped[int] = mapped_column(BIGINT(unsigned=True), primary_key=True, autoincrement=True)
+    vdate: Mapped[date] = mapped_column(Date)
+    hour: Mapped[int] = mapped_column(Integer)
+    visitor_key: Mapped[str] = mapped_column(String(16))
+    listing_id: Mapped[int | None] = mapped_column(BIGINT(unsigned=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    __table_args__ = (
+        Index("idx_vdate_hour", "vdate", "hour"),
+        Index("idx_vdate_listing", "vdate", "listing_id"),
+        Index("idx_vdate_visitor", "vdate", "visitor_key"),
+    )
+
+
+class Ad(Base):
+    """详情页广告位。enabled=False 或表中无记录时前端不渲染广告位。"""
+
+    __tablename__ = "ads"
+
+    id: Mapped[int] = mapped_column(BIGINT(unsigned=True), primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(50))
+    desc: Mapped[str] = mapped_column(String(100), default="")
+    image: Mapped[str | None] = mapped_column(String(255))
+    link: Mapped[str] = mapped_column(String(200), default="#")
+    color: Mapped[str] = mapped_column(String(16), default="#5a6a8a")
+    sort: Mapped[int] = mapped_column(Integer, default=0)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    click_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

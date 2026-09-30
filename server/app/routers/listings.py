@@ -1,6 +1,6 @@
 """公开接口：城市、筛选项聚合、房源列表/详情、房东主页、举报。"""
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -8,11 +8,6 @@ from app.database import get_db
 from app.deps import ListingFilters
 
 router = APIRouter(prefix="/api", tags=["listings"])
-
-
-def _ensure_city(db: Session, city: str) -> None:
-    if not db.scalar(select(models.City).where(models.City.name == city)):
-        raise HTTPException(400, f"暂不支持城市: {city}")
 
 
 def _apply_filters(stmt, q: ListingFilters, city: str | None, landlord_id: int | None):
@@ -55,15 +50,15 @@ def _keyword_stmt(stmt, q: ListingFilters):
 
 @router.get("/cities")
 def list_cities(db: Session = Depends(get_db)):
-    return [
-        {"id": c.id, "name": c.name}
-        for c in db.scalars(select(models.City).order_by(models.City.id))
-    ]
+    """城市列表 = 配置表 ∪ 有房源的城市（房东可自由填城市，填过即出现在切换器）。"""
+    rows = db.execute(
+        select(models.City.name).union(select(distinct(models.Listing.city)))
+    ).scalars().all()
+    return [{"id": i, "name": n} for i, n in enumerate(sorted(set(rows)))]
 
 
 @router.get("/filter-options", response_model=schemas.FilterOptionsOut)
 def filter_options(city: str, db: Session = Depends(get_db)):
-    _ensure_city(db, city)
     base = [models.Listing.city == city, models.Listing.status == "active"]
 
     def group(col):
@@ -77,7 +72,6 @@ def filter_options(city: str, db: Session = Depends(get_db)):
 
 @router.get("/listings", response_model=schemas.ListingPage)
 def list_listings(city: str, q: ListingFilters = Depends(), db: Session = Depends(get_db)):
-    _ensure_city(db, city)
     stmt = _apply_filters(select(models.Listing), q, city, None)
     stmt = _keyword_stmt(stmt, q)
     return _page(db, stmt, q)

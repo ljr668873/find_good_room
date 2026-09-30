@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { showFailToast, showSuccessToast } from "vant";
 import { useCityStore } from "../stores/city";
+import { HOT_CITIES } from "../constants/cities";
 import { createListing, getMyListing, updateListing, uploadPhotos } from "../api";
 
 const route = useRoute();
@@ -60,9 +61,20 @@ const showLayoutPicker = ref(false);
 const showDepositPicker = ref(false);
 const showDatePicker = ref(false);
 
-function onCityConfirm({ selectedOptions }) {
-  form.value.city = selectedOptions[0]?.text || "";
+// 城市选择：热门列表 + 搜索过滤 + 无匹配时自由输入
+const cityQuery = ref("");
+const cityCandidates = computed(() => {
+  const q = cityQuery.value.trim();
+  const list = q ? HOT_CITIES.filter((c) => c.includes(q)) : HOT_CITIES;
+  const exact = list.includes(q) || !q;
+  return { list, exact, q };
+});
+
+function pickCity(name) {
+  if (!name) return;
+  form.value.city = name;
   showCityPicker.value = false;
+  cityQuery.value = "";
 }
 function onLayoutConfirm({ selectedOptions }) {
   form.value.layout = selectedOptions[0]?.text || "";
@@ -221,7 +233,7 @@ onMounted(async () => {
     <div v-show="step === 0">
       <van-cell-group inset title="房子在哪">
         <van-field
-          v-model="form.city" is-link readonly label="城市" placeholder="选择城市"
+          v-model="form.city" is-link readonly label="城市" placeholder="选择或输入城市"
           @click="showCityPicker = true"
         />
         <van-field v-model="form.village" label="村名" placeholder="如 白石洲" />
@@ -309,12 +321,38 @@ onMounted(async () => {
       </van-button>
     </div>
 
-    <!-- 弹层 -->
-    <van-popup v-model:show="showCityPicker" position="bottom" round>
-      <van-picker
-        :columns="cityStore.cities.map((c) => ({ text: c.name, value: c.name }))"
-        @confirm="onCityConfirm" @cancel="showCityPicker = false"
-      />
+    <!-- 弹层：城市选择（热门 + 搜索 + 自由输入） -->
+    <van-popup v-model:show="showCityPicker" position="bottom" round style="height: 68%">
+      <div class="city-picker">
+        <van-search
+          v-model="cityQuery"
+          placeholder="搜索城市，没有可直接输入城市名"
+          :show-action="true"
+          @cancel="showCityPicker = false"
+        >
+          <template #action>
+            <span style="color: #969799" @click="showCityPicker = false">取消</span>
+          </template>
+        </van-search>
+        <div class="city-list">
+          <div
+            v-for="c in cityCandidates.list"
+            :key="c"
+            class="city-chip"
+            :class="{ active: form.city === c }"
+            @click="pickCity(c)"
+          >{{ c }}</div>
+          <div
+            v-if="cityCandidates.q && !cityCandidates.exact"
+            class="city-chip add"
+            @click="pickCity(cityCandidates.q)"
+          >使用「{{ cityCandidates.q }}」</div>
+          <van-empty
+            v-if="!cityCandidates.list.length && !cityCandidates.q"
+            description="输入城市名搜索"
+          />
+        </div>
+      </div>
     </van-popup>
     <van-popup v-model:show="showLayoutPicker" position="bottom" round>
       <van-picker
@@ -362,6 +400,38 @@ onMounted(async () => {
 }
 .uploader-wrap {
   padding: 12px 16px;
+}
+
+.city-picker {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.city-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px 20px;
+  align-content: flex-start;
+}
+.city-chip {
+  padding: 6px 16px;
+  border-radius: 16px;
+  background: #f2f3f5;
+  font-size: 14px;
+  cursor: pointer;
+}
+.city-chip.active {
+  background: #07c160;
+  color: #fff;
+}
+.city-chip.add {
+  background: #fff;
+  border: 1px dashed #07c160;
+  color: #07c160;
 }
 .actions {
   display: flex;

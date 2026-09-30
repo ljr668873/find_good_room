@@ -167,3 +167,80 @@ class ReportPatch(BaseModel):
 
 class AdminListingAction(BaseModel):
     action: Literal["offline", "active"]
+
+
+# ---- 管理员：房东 CRUD ----
+
+class LandlordAdminCreate(BaseModel):
+    username: str = Field(min_length=2, max_length=32, pattern=r"^[\w一-龥]+$")
+    password: str = Field(min_length=6, max_length=64)
+    is_admin: bool = False
+
+
+class LandlordAdminUpdate(BaseModel):
+    username: str | None = Field(default=None, min_length=2, max_length=32, pattern=r"^[\w一-龥]+$")
+    password: str | None = Field(default=None, min_length=6, max_length=64)
+
+
+class LandlordAdminOut(BaseModel):
+    id: int
+    username: str
+    is_admin: bool
+    listing_count: int
+    created_at: datetime
+
+
+class LandlordAdminPage(BaseModel):
+    items: list[LandlordAdminOut]
+    total: int
+    page: int
+    page_size: int
+
+
+# ---- 管理员：访问统计 ----
+
+class StatsSummary(BaseModel):
+    uv: int
+    pv: int
+    listing_pv: int
+
+
+class HourlyStat(BaseModel):
+    hour: int
+    uv: int
+    pv: int
+
+
+class TopListing(BaseModel):
+    listing_id: int
+    title: str
+    village: str
+    count: int
+
+
+# ---- 广告 ----
+
+class AdBase(BaseModel):
+    title: str = Field(min_length=1, max_length=50)
+    desc: str = Field(default="", max_length=100)
+    image: str | None = Field(default=None, max_length=255)
+    link: str = Field(default="#", max_length=200)
+    color: str = Field(default="#5a6a8a", max_length=16)
+    sort: int = Field(default=0, ge=0, le=9999)
+    enabled: bool = True
+
+
+class AdCreate(AdBase):
+    pass
+
+
+class AdUpdate(AdBase):
+    pass
+
+
+class AdOut(AdBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    click_count: int
+    created_at: datetime

@@ -42,7 +42,6 @@ async function onSubmit() {
         登录
       </van-button>
     </div>
-    <div class="switch" @click="router.push('/register')">没有账号？去注册</div>
   </div>
 </template>
 

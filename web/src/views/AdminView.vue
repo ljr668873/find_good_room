@@ -1,7 +1,11 @@
 <script setup>
 import { onMounted, ref } from "vue";
-import { getAdminReports, forceListingStatus, resolveReport } from "../api";
+import { forceListingStatus, getAdminReports, resolveReport } from "../api";
+import AdminAdsView from "./AdminAdsView.vue";
+import AdminLandlordsView from "./AdminLandlordsView.vue";
+import AdminStatsView from "./AdminStatsView.vue";
 
+const activeTab = ref(0);
 const items = ref([]);
 const loading = ref(true);
 
@@ -32,37 +36,53 @@ async function offline(listingId) {
 
 <template>
   <div class="admin">
-    <h2 class="title">举报处理</h2>
+    <h2 class="title">管理后台</h2>
 
-    <div v-if="loading" class="loading"><van-loading size="24" /></div>
-    <van-empty v-else-if="!items.length" description="没有待处理的举报" />
+    <van-tabs v-model:active="activeTab">
+      <van-tab title="举报处理">
+        <div v-if="loading" class="loading"><van-loading size="24" /></div>
+        <van-empty v-else-if="!items.length" description="没有待处理的举报" />
 
-    <div v-for="r in items" v-else :key="r.id" class="report">
-      <div class="row">
-        <van-tag type="danger">{{ REASON_LABEL[r.reason] || r.reason }}</van-tag>
-        <span class="when">{{ new Date(r.created_at).toLocaleString() }}</span>
-      </div>
-      <div class="listing">
-        <div class="l-title">{{ r.listing_title }}</div>
-        <div class="l-meta">
-          {{ r.listing_city }}·{{ r.listing_village }} · 房源状态 {{ r.listing_status }} · 房东
-          {{ r.landlord_username }}
+        <div v-for="r in items" v-else :key="r.id" class="report">
+          <div class="row">
+            <van-tag type="danger">{{ REASON_LABEL[r.reason] || r.reason }}</van-tag>
+            <span class="when">{{ new Date(r.created_at).toLocaleString() }}</span>
+          </div>
+          <div class="listing">
+            <div class="l-title">{{ r.listing_title }}</div>
+            <div class="l-meta">
+              {{ r.listing_city }}·{{ r.listing_village }} · 房源状态 {{ r.listing_status }} · 房东
+              {{ r.landlord_username }}
+            </div>
+            <div class="l-meta">
+              <a :href="`/listing/${r.listing_id}`" target="_blank">查看房源</a>
+            </div>
+          </div>
+          <div class="ops">
+            <van-button size="small" plain round @click="done(r.id)">标记已处理</van-button>
+            <van-button
+              v-if="r.listing_status === 'active'"
+              size="small" type="danger" plain round
+              @click="offline(r.listing_id)"
+            >
+              强制下架
+            </van-button>
+          </div>
         </div>
-        <div class="l-meta">
-          <a :href="`/listing/${r.listing_id}`" target="_blank">查看房源</a>
-        </div>
-      </div>
-      <div class="ops">
-        <van-button size="small" plain round @click="done(r.id)">标记已处理</van-button>
-        <van-button
-          v-if="r.listing_status === 'active'"
-          size="small" type="danger" plain round
-          @click="offline(r.listing_id)"
-        >
-          强制下架
-        </van-button>
-      </div>
-    </div>
+      </van-tab>
+
+      <van-tab title="房东账号">
+        <AdminLandlordsView />
+      </van-tab>
+
+      <van-tab title="访问统计">
+        <AdminStatsView />
+      </van-tab>
+
+      <van-tab title="广告管理">
+        <AdminAdsView />
+      </van-tab>
+    </van-tabs>
   </div>
 </template>
 

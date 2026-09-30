@@ -29,6 +29,8 @@ export const getListings = (params) => http.get("/listings", { params });
 export const getListing = (id) => http.get(`/listings/${id}`);
 export const getLandlordListings = (id, params) => http.get(`/landlords/${id}/listings`, { params });
 export const postReport = (data) => http.post("/reports", data);
+export const getAds = () => http.get("/ads");
+export const adClick = (id) => http.post(`/ads/${id}/click`).catch(() => {});
 
 // 房东
 export const register = (data) => http.post("/auth/register", data);
@@ -41,7 +43,18 @@ export const updateListing = (id, data) => http.put(`/my/listings/${id}`, data);
 export const setListingStatus = (id, action) => http.patch(`/my/listings/${id}/status`, { action });
 export const uploadPhotos = (formData) => http.post("/my/upload/photos", formData);
 
-// 管理员（M5）
+// 管理员
 export const getAdminReports = (params) => http.get("/admin/reports", { params });
 export const resolveReport = (id) => http.patch(`/admin/reports/${id}`, { status: "done" });
 export const forceListingStatus = (id, action) => http.patch(`/admin/listings/${id}/status`, { action });
+export const getAdminLandlords = (params) => http.get("/admin/landlords", { params });
+export const createAdminLandlord = (data) => http.post("/admin/landlords", data);
+export const updateAdminLandlord = (id, data) => http.put(`/admin/landlords/${id}`, data);
+export const deleteAdminLandlord = (id) => http.delete(`/admin/landlords/${id}`);
+export const getStatsSummary = (date) => http.get("/admin/stats/summary", { params: { date } });
+export const getStatsHourly = (date) => http.get("/admin/stats/hourly", { params: { date } });
+export const getStatsTopListings = (params) => http.get("/admin/stats/top-listings", { params });
+export const getAdminAds = () => http.get("/admin/ads");
+export const createAdminAd = (data) => http.post("/admin/ads", data);
+export const updateAdminAd = (id, data) => http.put(`/admin/ads/${id}`, data);
+export const deleteAdminAd = (id) => http.delete(`/admin/ads/${id}`);

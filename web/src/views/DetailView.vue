@@ -1,14 +1,28 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { showSuccessToast, showToast } from "vant";
-import { getListing, postReport } from "../api";
+import { getAds, getListing, postReport } from "../api";
+import AdBanner from "../components/AdBanner.vue";
+import ImageViewer from "../components/ImageViewer.vue";
 
 const route = useRoute();
 const router = useRouter();
 const listing = ref(null);
 const notFound = ref(false);
 const showReport = ref(false);
+const ads = ref([]);
+
+// 轮播与全屏查看器
+const swipeRef = ref();
+const swipeIndex = ref(0);
+const viewerShow = ref(false);
+const detailPhotos = computed(() => (listing.value ? listing.value.photos.slice(1) : []));
+
+function openViewer(i) {
+  viewerShow.value = true;
+  swipeIndex.value = i;
+}
 
 const REPORT_REASONS = [
   { name: "虚假房源", value: "fake" },
@@ -18,6 +32,7 @@ const REPORT_REASONS = [
 ];
 
 onMounted(async () => {
+  getAds().then((res) => (ads.value = res)).catch(() => {});
   try {
     listing.value = await getListing(route.params.id);
   } catch {
@@ -46,11 +61,21 @@ async function report(item) {
 
 <template>
   <div v-if="listing" class="detail">
-    <van-swipe :autoplay="3000" lazy-render indicator-color="#fff">
-      <van-swipe-item v-for="(p, i) in listing.photos.slice(1)" :key="i">
-        <img class="photo" :src="p" alt="" />
-      </van-swipe-item>
-    </van-swipe>
+    <div class="swipe-wrap">
+      <van-swipe
+        ref="swipeRef"
+        :loop="false"
+        lazy-render
+        indicator-color="#fff"
+        @change="(i) => (swipeIndex = i)"
+      >
+        <van-swipe-item v-for="(p, i) in detailPhotos" :key="i" @click="openViewer(i)">
+          <img class="photo" :src="p" alt="" />
+        </van-swipe-item>
+      </van-swipe>
+      <div v-if="detailPhotos.length > 1" class="nav prev" @click="swipeRef?.prev()">‹</div>
+      <div v-if="detailPhotos.length > 1" class="nav next" @click="swipeRef?.next()">›</div>
+    </div>
 
     <div class="panel">
       <div class="price-row">
@@ -91,6 +116,8 @@ async function report(item) {
       <div v-if="listing.surroundings" class="loc">{{ listing.surroundings }}</div>
     </div>
 
+    <AdBanner :ads="ads" />
+
     <div class="panel links">
       <span @click="router.push(`/landlord/${listing.landlord_id}`)">看 TA 的全部房源 →</span>
       <span class="report" @click="showReport = true">举报</span>
@@ -111,6 +138,12 @@ async function report(item) {
       close-on-click-action
       @select="report"
     />
+
+    <ImageViewer
+      v-model:show="viewerShow"
+      :images="detailPhotos"
+      :start="swipeIndex"
+    />
   </div>
 
   <van-empty v-else-if="notFound" description="房源不存在或已下架">
@@ -124,12 +157,39 @@ async function report(item) {
   padding-bottom: 92px;
 }
 
+.swipe-wrap {
+  position: relative;
+}
 .photo {
   width: 100%;
-  height: 260px;
+  aspect-ratio: 4 / 3; /* 列表态适中高度；点击进全屏查看器看完整大图 */
   object-fit: cover;
   display: block;
   background: #ebedf0;
+  cursor: zoom-in;
+}
+.nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 5;
+}
+.nav.prev {
+  left: 0;
+  border-radius: 0 6px 6px 0;
+}
+.nav.next {
+  right: 0;
+  border-radius: 6px 0 0 6px;
 }
 
 .panel {

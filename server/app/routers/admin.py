@@ -1,10 +1,12 @@
-"""管理员接口：举报队列、强制下架。"""
+"""管理员接口：举报队列、房东账号 CRUD、访问统计。"""
+from datetime import date, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import models, schemas
-from app.auth import require_admin
+from app.auth import hash_password, require_admin
 from app.database import get_db
 
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)])
@@ -62,5 +64,196 @@ def force_status(listing_id: int, data: schemas.AdminListingAction, db: Session 
     if listing is None:
         raise HTTPException(404, "房源不存在")
     listing.status = data.action
+    db.commit()
+    return {"ok": True}
+
+
+# ---- 房东账号 CRUD ----
+
+def _parse_date(s: str | None) -> date:
+    if not s:
+        return datetime.now().date()
+    try:
+        return datetime.strptime(s, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(400, "日期格式应为 YYYY-MM-DD")
+
+
+@router.get("/landlords", response_model=schemas.LandlordAdminPage)
+def landlord_list(
+    keyword: str | None = Query(None, max_length=32),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    cond = []
+    if keyword:
+        cond.append(models.User.username.contains(keyword))
+    total = db.scalar(select(func.count(models.User.id)).where(*cond))
+    rows = db.execute(
+        select(models.User, func.count(models.Listing.id))
+        .outerjoin(models.Listing, models.Listing.landlord_id == models.User.id)
+        .where(*cond)
+        .group_by(models.User.id)
+        .order_by(models.User.id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    ).all()
+    items = [
+        schemas.LandlordAdminOut(
+            id=u.id, username=u.username, is_admin=u.is_admin,
+            listing_count=n or 0, created_at=u.created_at,
+        )
+        for u, n in rows
+    ]
+    return schemas.LandlordAdminPage(items=items, total=total, page=page, page_size=page_size)
+
+
+@router.post("/landlords", response_model=schemas.UserOut, status_code=201)
+def landlord_create(data: schemas.LandlordAdminCreate, db: Session = Depends(get_db)):
+    if db.scalar(select(models.User).where(models.User.username == data.username)):
+        raise HTTPException(400, "用户名已存在")
+    user = models.User(
+        username=data.username,
+        password_hash=hash_password(data.password),
+        is_admin=data.is_admin,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.put("/landlords/{user_id}", response_model=schemas.UserOut)
+def landlord_update(user_id: int, data: schemas.LandlordAdminUpdate, db: Session = Depends(get_db)):
+    user = db.get(models.User, user_id)
+    if user is None:
+        raise HTTPException(404, "账号不存在")
+    if not data.username and not data.password:
+        raise HTTPException(400, "至少修改用户名或密码之一")
+    if data.username and data.username != user.username:
+        if db.scalar(select(models.User).where(models.User.username == data.username)):
+            raise HTTPException(400, "用户名已存在")
+        user.username = data.username
+    if data.password:
+        user.password_hash = hash_password(data.password)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.delete("/landlords/{user_id}")
+def landlord_delete(user_id: int, db: Session = Depends(get_db)):
+    user = db.get(models.User, user_id)
+    if user is None:
+        raise HTTPException(404, "账号不存在")
+    if user.is_admin:
+        raise HTTPException(400, "不能删除管理员账号")
+    n = db.scalar(
+        select(func.count(models.Listing.id)).where(models.Listing.landlord_id == user_id)
+    )
+    if n:
+        raise HTTPException(400, f"名下还有 {n} 套房源，请先处理房源再删除账号")
+    db.delete(user)
+    db.commit()
+    return {"ok": True}
+
+
+# ---- 访问统计 ----
+
+@router.get("/stats/summary", response_model=schemas.StatsSummary)
+def stats_summary(date_: str | None = Query(None, alias="date"), db: Session = Depends(get_db)):
+    d = _parse_date(date_)
+    cond = models.VisitLog.vdate == d
+    uv = db.scalar(select(func.count(func.distinct(models.VisitLog.visitor_key))).where(cond)) or 0
+    pv = db.scalar(select(func.count()).select_from(models.VisitLog).where(cond)) or 0
+    lpv = db.scalar(
+        select(func.count()).select_from(models.VisitLog).where(cond, models.VisitLog.listing_id.is_not(None))
+    ) or 0
+    return schemas.StatsSummary(uv=uv, pv=pv, listing_pv=lpv)
+
+
+@router.get("/stats/hourly", response_model=list[schemas.HourlyStat])
+def stats_hourly(date_: str | None = Query(None, alias="date"), db: Session = Depends(get_db)):
+    d = _parse_date(date_)
+    rows = db.execute(
+        select(
+            models.VisitLog.hour,
+            func.count(func.distinct(models.VisitLog.visitor_key)),
+            func.count(),
+        )
+        .where(models.VisitLog.vdate == d)
+        .group_by(models.VisitLog.hour)
+    ).all()
+    by_hour = {h: (uv, pv) for h, uv, pv in rows}
+    # 24 小时补零，前端直接画柱
+    return [
+        schemas.HourlyStat(hour=h, uv=by_hour.get(h, (0, 0))[0], pv=by_hour.get(h, (0, 0))[1])
+        for h in range(24)
+    ]
+
+
+@router.get("/stats/top-listings", response_model=list[schemas.TopListing])
+def stats_top_listings(
+    date_: str | None = Query(None, alias="date"),
+    hour: int | None = Query(None, ge=0, le=23),
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db),
+):
+    d = _parse_date(date_)
+    cond = [models.VisitLog.vdate == d, models.VisitLog.listing_id.is_not(None)]
+    if hour is not None:
+        cond.append(models.VisitLog.hour == hour)
+    rows = db.execute(
+        select(models.VisitLog.listing_id, func.count().label("c"))
+        .where(*cond)
+        .group_by(models.VisitLog.listing_id)
+        .order_by(func.count().desc())
+        .limit(limit)
+    ).all()
+    out = []
+    for listing_id, count in rows:
+        listing = db.get(models.Listing, listing_id)
+        if listing:
+            out.append(schemas.TopListing(
+                listing_id=listing_id, title=listing.title, village=listing.village, count=count,
+            ))
+    return out
+
+
+# ---- 广告管理 ----
+
+@router.get("/ads", response_model=list[schemas.AdOut])
+def ad_list(db: Session = Depends(get_db)):
+    return db.scalars(select(models.Ad).order_by(models.Ad.sort, models.Ad.id)).all()
+
+
+@router.post("/ads", response_model=schemas.AdOut, status_code=201)
+def ad_create(data: schemas.AdCreate, db: Session = Depends(get_db)):
+    ad = models.Ad(**data.model_dump())
+    db.add(ad)
+    db.commit()
+    db.refresh(ad)
+    return ad
+
+
+@router.put("/ads/{ad_id}", response_model=schemas.AdOut)
+def ad_update(ad_id: int, data: schemas.AdUpdate, db: Session = Depends(get_db)):
+    ad = db.get(models.Ad, ad_id)
+    if ad is None:
+        raise HTTPException(404, "广告不存在")
+    for key, value in data.model_dump().items():
+        setattr(ad, key, value)
+    db.commit()
+    db.refresh(ad)
+    return ad
+
+
+@router.delete("/ads/{ad_id}")
+def ad_delete(ad_id: int, db: Session = Depends(get_db)):
+    ad = db.get(models.Ad, ad_id)
+    if ad is None:
+        raise HTTPException(404, "广告不存在")
+    db.delete(ad)
     db.commit()
     return {"ok": True}

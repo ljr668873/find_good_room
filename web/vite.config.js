@@ -14,6 +14,7 @@ export default defineConfig({
     proxy: {
       "/api": `http://127.0.0.1:${API_PORT}`,
       "/uploads": `http://127.0.0.1:${API_PORT}`,
+      "/static": `http://127.0.0.1:${API_PORT}`,
     },
   },
 });

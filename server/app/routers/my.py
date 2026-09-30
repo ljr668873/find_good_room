@@ -29,8 +29,6 @@ def create_listing(
     user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not db.scalar(select(models.City).where(models.City.name == data.city)):
-        raise HTTPException(400, f"暂不支持城市: {data.city}")
     listing = models.Listing(
         landlord_id=user.id,
         title=_auto_title(data),
@@ -50,8 +48,6 @@ def update_listing(
     db: Session = Depends(get_db),
 ):
     listing = _own_listing(db, listing_id, user)
-    if not db.scalar(select(models.City).where(models.City.name == data.city)):
-        raise HTTPException(400, f"暂不支持城市: {data.city}")
     for key, value in data.model_dump(exclude={"title"}).items():
         setattr(listing, key, value)
     listing.title = _auto_title(data)

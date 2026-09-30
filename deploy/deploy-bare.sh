@@ -82,6 +82,12 @@ set -a; source "$INSTALL_DIR/app.env"; set +a
 (cd "$INSTALL_DIR/server" && .venv/bin/alembic upgrade head)
 (cd "$INSTALL_DIR/server" && ADMIN_USERNAME="$ADMIN_USERNAME" ADMIN_PASSWORD="$ADMIN_PASSWORD" .venv/bin/python -m scripts.seed)
 
+# 演示数据（可选，deploy/.env 里 LOAD_DEMO=1 开启；会清空房源/非管理员用户）
+if [ "${LOAD_DEMO:-0}" = "1" ]; then
+  echo "      导入演示数据 ..."
+  (cd "$INSTALL_DIR/server" && .venv/bin/python -m scripts.import_demo)
+fi
+
 # ---- systemd ----
 echo "[5/6] 配置 systemd 服务 ..."
 cat > /etc/systemd/system/find-good-room.service <<EOF
