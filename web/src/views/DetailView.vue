@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { showSuccessToast, showToast } from "vant";
 import { getAds, getListing, postReport } from "../api";
+import { copyText } from "../utils/clipboard";
 import AdBanner from "../components/AdBanner.vue";
 import ImageViewer from "../components/ImageViewer.vue";
 
@@ -41,11 +42,7 @@ onMounted(async () => {
 });
 
 function copyWechat() {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(listing.value.wechat).then(() => showSuccessToast("已复制微信号"));
-  } else {
-    showToast(listing.value.wechat);
-  }
+  copyText(listing.value.wechat, "已复制微信号");
 }
 
 async function report(item) {

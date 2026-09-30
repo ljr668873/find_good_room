@@ -5,6 +5,7 @@ import { showFailToast, showSuccessToast } from "vant";
 import { useCityStore } from "../stores/city";
 import { HOT_CITIES } from "../constants/cities";
 import { createListing, getMyListing, updateListing, uploadPhotos } from "../api";
+import ImageViewer from "../components/ImageViewer.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -77,6 +78,16 @@ async function uploadOne(rawFile, item) {
 }
 
 const dragActive = ref(false);
+
+// 图片预览：禁用 vant 默认全屏预览（无关闭入口），改用自带 ImageViewer（✕/Esc/点背景关闭）
+const viewerShow = ref(false);
+const viewerIndex = ref(0);
+
+function openViewer(file, detail) {
+  // vant click-preview 参数为 (file, { name, index })
+  viewerIndex.value = detail?.index ?? 0;
+  viewerShow.value = true;
+}
 
 async function afterRead(files) {
   const list = Array.isArray(files) ? files : [files];
@@ -319,7 +330,9 @@ onMounted(async () => {
             :max-count="9"
             multiple
             deletable
+            :preview-full-image="false"
             upload-text="点击选择"
+            @click-preview="openViewer"
           />
           <div class="drop-tip" :class="{ active: dragActive }">把图片拖到这里即可上传</div>
         </div>
@@ -395,6 +408,12 @@ onMounted(async () => {
         @confirm="onDateConfirm" @cancel="showDatePicker = false"
       />
     </van-popup>
+
+    <ImageViewer
+      v-model:show="viewerShow"
+      :images="fileList.map((f) => f.url)"
+      :start="viewerIndex"
+    />
   </div>
 </template>
 

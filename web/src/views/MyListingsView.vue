@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { showConfirmDialog, showSuccessToast } from "vant";
 import QRCode from "qrcode";
 import { getMyListings, setListingStatus } from "../api";
+import { copyText } from "../utils/clipboard";
 import { useAuthStore } from "../stores/auth";
 
 const router = useRouter();
@@ -21,9 +22,7 @@ async function openShare() {
 }
 
 function copyShare() {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(shareUrl.value).then(() => showSuccessToast("链接已复制"));
-  }
+  copyText(shareUrl.value, "链接已复制");
 }
 
 const all = ref([]);
