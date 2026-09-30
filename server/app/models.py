@@ -1,3 +1,4 @@
+import secrets
 from datetime import date, datetime
 
 from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, func
@@ -7,6 +8,11 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
 
 
+def gen_slug() -> str:
+    """8 字符随机分享标识，不可枚举（token_urlsafe 去掉易混淆可能后截断）。"""
+    return secrets.token_urlsafe(6)[:8]
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -14,6 +20,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(32), unique=True)
     password_hash: Mapped[str] = mapped_column(String(127))
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    # 分享主页标识：/landlord/{share_slug}，注册时生成，永不改变
+    share_slug: Mapped[str | None] = mapped_column(String(16), unique=True, default=gen_slug)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
@@ -29,6 +37,9 @@ class Listing(Base):
 
     id: Mapped[int] = mapped_column(BIGINT(unsigned=True), primary_key=True, autoincrement=True)
     landlord_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    # 分享标识：/listing/{share_slug}，防数字 id 枚举；landlord_slug 冗余存房东分享标识（房东 slug 不变，安全）
+    share_slug: Mapped[str | None] = mapped_column(String(16), unique=True, default=gen_slug)
+    landlord_slug: Mapped[str | None] = mapped_column(String(16))
     title: Mapped[str] = mapped_column(String(50))
     city: Mapped[str] = mapped_column(String(32))
     village: Mapped[str] = mapped_column(String(32))

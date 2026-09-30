@@ -1,12 +1,30 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { showConfirmDialog, showSuccessToast } from "vant";
+import QRCode from "qrcode";
 import { getMyListings, setListingStatus } from "../api";
 import { useAuthStore } from "../stores/auth";
 
 const router = useRouter();
 const authStore = useAuthStore();
+
+// ---- 分享主页 ----
+const showShare = ref(false);
+const qrCanvas = ref();
+const shareUrl = computed(() => `${location.origin}/landlord/${authStore.user?.share_slug}`);
+
+async function openShare() {
+  showShare.value = true;
+  await nextTick();
+  QRCode.toCanvas(qrCanvas.value, shareUrl.value, { width: 190, margin: 1 });
+}
+
+function copyShare() {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(shareUrl.value).then(() => showSuccessToast("链接已复制"));
+  }
+}
 
 const all = ref([]);
 const loading = ref(true);
@@ -56,6 +74,9 @@ async function act(listing, action) {
     <div class="topbar">
       <span class="hello">{{ authStore.user?.username || "我" }} 的房源</span>
       <div class="topbar-actions">
+        <van-button size="small" round plain type="primary" color="#1989fa" @click="openShare">
+          分享主页
+        </van-button>
         <van-button size="small" round plain type="primary" color="#07c160" @click="router.push('/publish')">
           发布新房
         </van-button>
@@ -95,10 +116,43 @@ async function act(listing, action) {
         <van-empty v-else :description="`暂无${STATUS_LABEL[activeTab]}房源`" />
       </van-tab>
     </van-tabs>
+
+    <van-popup v-model:show="showShare" position="bottom" round style="max-width: 720px; left: 50%; transform: translateX(-50%)">
+      <div class="share-box">
+        <div class="share-title">我的房源主页</div>
+        <canvas ref="qrCanvas"></canvas>
+        <div class="share-url">{{ shareUrl }}</div>
+        <div class="share-tip">租客扫码或打开链接，直达你名下全部在租房源</div>
+        <van-button round block type="primary" color="#07c160" @click="copyShare">复制链接</van-button>
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <style scoped>
+.share-box {
+  padding: 28px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.share-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+.share-url {
+  font-size: 13px;
+  color: #1989fa;
+  word-break: break-all;
+  text-align: center;
+}
+.share-tip {
+  font-size: 12px;
+  color: #969799;
+  margin-bottom: 8px;
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;

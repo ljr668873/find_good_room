@@ -1,10 +1,25 @@
 {
  "landlords": [
-  "demo_员村小陈",
-  "demo_客村林姨",
-  "demo_岗厦阿珍",
-  "demo_深圳老周",
-  "demo_石牌阿强"
+  {
+   "username": "demo_石牌阿强",
+   "share_slug": "eDQ1wdkM"
+  },
+  {
+   "username": "demo_客村林姨",
+   "share_slug": "9iYNA1JW"
+  },
+  {
+   "username": "demo_员村小陈",
+   "share_slug": "CcyUJHQX"
+  },
+  {
+   "username": "demo_深圳老周",
+   "share_slug": "M7cuq7ZZ"
+  },
+  {
+   "username": "demo_岗厦阿珍",
+   "share_slug": "JXy60-vt"
+  }
  ],
  "listings": [
   {
@@ -36,7 +51,9 @@
    ],
    "phone": "13883140807",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "j8u555qA",
+   "landlord_slug": "eDQ1wdkM"
   },
   {
    "username": "demo_石牌阿强",
@@ -67,7 +84,9 @@
    ],
    "phone": "13871662963",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "0V0jwcf-",
+   "landlord_slug": "eDQ1wdkM"
   },
   {
    "username": "demo_石牌阿强",
@@ -99,7 +118,9 @@
    ],
    "phone": "13858966946",
    "wechat": "wx_石牌村",
-   "status": "active"
+   "status": "active",
+   "share_slug": "gDhWHbTp",
+   "landlord_slug": "eDQ1wdkM"
   },
   {
    "username": "demo_石牌阿强",
@@ -132,7 +153,9 @@
    ],
    "phone": "13817507864",
    "wechat": "wx_石牌村",
-   "status": "active"
+   "status": "active",
+   "share_slug": "BrYWTC1z",
+   "landlord_slug": "eDQ1wdkM"
   },
   {
    "username": "demo_石牌阿强",
@@ -165,7 +188,9 @@
    ],
    "phone": "13863606628",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "pieHVLkD",
+   "landlord_slug": "eDQ1wdkM"
   },
   {
    "username": "demo_石牌阿强",
@@ -196,7 +221,9 @@
    ],
    "phone": "13825374874",
    "wechat": null,
-   "status": "rented"
+   "status": "rented",
+   "share_slug": "hQSJjjd8",
+   "landlord_slug": "eDQ1wdkM"
   },
   {
    "username": "demo_客村林姨",
@@ -228,7 +255,9 @@
    ],
    "phone": "13830513739",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "u_fnGSFQ",
+   "landlord_slug": "9iYNA1JW"
   },
   {
    "username": "demo_客村林姨",
@@ -261,7 +290,9 @@
    ],
    "phone": "13881498611",
    "wechat": "wx_鹭江",
-   "status": "active"
+   "status": "active",
+   "share_slug": "vY-o4c8P",
+   "landlord_slug": "9iYNA1JW"
   },
   {
    "username": "demo_客村林姨",
@@ -293,7 +324,9 @@
    ],
    "phone": "13818593410",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "vtForJ9r",
+   "landlord_slug": "9iYNA1JW"
   },
   {
    "username": "demo_客村林姨",
@@ -326,7 +359,9 @@
    ],
    "phone": "13873481353",
    "wechat": null,
-   "status": "offline"
+   "status": "offline",
+   "share_slug": "g6HztbMV",
+   "landlord_slug": "9iYNA1JW"
   },
   {
    "username": "demo_客村林姨",
@@ -358,7 +393,9 @@
    ],
    "phone": "13820117988",
    "wechat": null,
-   "status": "rented"
+   "status": "rented",
+   "share_slug": "HQmYkGMG",
+   "landlord_slug": "9iYNA1JW"
   },
   {
    "username": "demo_员村小陈",
@@ -391,7 +428,9 @@
    ],
    "phone": "13871070189",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "CSRm__vp",
+   "landlord_slug": "CcyUJHQX"
   },
   {
    "username": "demo_员村小陈",
@@ -424,7 +463,9 @@
    ],
    "phone": "13817634247",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "MWFrYqxs",
+   "landlord_slug": "CcyUJHQX"
   },
   {
    "username": "demo_员村小陈",
@@ -457,7 +498,9 @@
    ],
    "phone": "13852169044",
    "wechat": "wx_上社",
-   "status": "active"
+   "status": "active",
+   "share_slug": "bGglAtyY",
+   "landlord_slug": "CcyUJHQX"
   },
   {
    "username": "demo_员村小陈",
@@ -488,7 +531,9 @@
    ],
    "phone": "13831172421",
    "wechat": null,
-   "status": "offline"
+   "status": "offline",
+   "share_slug": "oSQ9ALlP",
+   "landlord_slug": "CcyUJHQX"
   },
   {
    "username": "demo_员村小陈",
@@ -521,7 +566,9 @@
    ],
    "phone": "13877834855",
    "wechat": null,
-   "status": "rented"
+   "status": "rented",
+   "share_slug": "Lq7dyzA9",
+   "landlord_slug": "CcyUJHQX"
   },
   {
    "username": "demo_深圳老周",
@@ -554,7 +601,9 @@
    ],
    "phone": "13830005727",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "-PPIoLQ4",
+   "landlord_slug": "M7cuq7ZZ"
   },
   {
    "username": "demo_深圳老周",
@@ -586,7 +635,9 @@
    ],
    "phone": "13830743797",
    "wechat": "wx_大冲",
-   "status": "active"
+   "status": "active",
+   "share_slug": "_uVx9l5e",
+   "landlord_slug": "M7cuq7ZZ"
   },
   {
    "username": "demo_深圳老周",
@@ -618,7 +669,9 @@
    ],
    "phone": "13840547349",
    "wechat": "wx_白石洲",
-   "status": "active"
+   "status": "active",
+   "share_slug": "xet6bVwr",
+   "landlord_slug": "M7cuq7ZZ"
   },
   {
    "username": "demo_深圳老周",
@@ -649,7 +702,9 @@
    ],
    "phone": "13868326160",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "e96YwGv3",
+   "landlord_slug": "M7cuq7ZZ"
   },
   {
    "username": "demo_深圳老周",
@@ -681,7 +736,9 @@
    ],
    "phone": "13850308572",
    "wechat": null,
-   "status": "active"
+   "status": "active",
+   "share_slug": "koXEVZax",
+   "landlord_slug": "M7cuq7ZZ"
   },
   {
    "username": "demo_深圳老周",
@@ -713,7 +770,9 @@
    ],
    "phone": "13887844239",
    "wechat": null,
-   "status": "rented"
+   "status": "rented",
+   "share_slug": "Tngyer4r",
+   "landlord_slug": "M7cuq7ZZ"
   },
   {
    "username": "demo_岗厦阿珍",
@@ -744,7 +803,9 @@
    ],
    "phone": "13840150759",
    "wechat": "wx_岗厦",
-   "status": "active"
+   "status": "active",
+   "share_slug": "7loJtnO4",
+   "landlord_slug": "JXy60-vt"
   },
   {
    "username": "demo_岗厦阿珍",
@@ -777,7 +838,9 @@
    ],
    "phone": "13867062156",
    "wechat": "wx_新洲",
-   "status": "active"
+   "status": "active",
+   "share_slug": "JEfTnuDO",
+   "landlord_slug": "JXy60-vt"
   },
   {
    "username": "demo_岗厦阿珍",
@@ -808,7 +871,9 @@
    ],
    "phone": "13883534128",
    "wechat": null,
-   "status": "offline"
+   "status": "offline",
+   "share_slug": "_LK47i6v",
+   "landlord_slug": "JXy60-vt"
   },
   {
    "username": "demo_岗厦阿珍",
@@ -840,7 +905,9 @@
    ],
    "phone": "13830509175",
    "wechat": null,
-   "status": "rented"
+   "status": "rented",
+   "share_slug": "qxGwvVEi",
+   "landlord_slug": "JXy60-vt"
   }
  ]
 }

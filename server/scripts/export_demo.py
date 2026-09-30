@@ -29,6 +29,7 @@ FIELDS = [
     "area", "floor", "floor_total", "has_elevator", "facing", "private_bathroom",
     "water_price", "electric_price", "available_date", "metro_line", "metro_station",
     "walk_minutes", "surroundings", "photos", "phone", "wechat", "status",
+    "share_slug", "landlord_slug",  # 保持分享链接在重导出/导入后不变
 ]
 
 
@@ -47,7 +48,12 @@ def main():
         ).all()
 
         data = {
-            "landlords": sorted(set(landlords.values())),
+            "landlords": [
+                {"username": u.username, "share_slug": u.share_slug}
+                for u in db.scalars(
+                    select(models.User).where(models.User.id.in_(landlords)).order_by(models.User.id)
+                )
+            ],
             "listings": [
                 {"username": landlords[l.landlord_id], **{f: _jsonable(getattr(l, f)) for f in FIELDS}}
                 for l in listings

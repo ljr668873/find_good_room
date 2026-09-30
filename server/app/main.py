@@ -14,7 +14,7 @@ from app.routers import auth as auth_router
 from app.routers import listings as listings_router
 from app.routers import my as my_router
 
-app = FastAPI(title="find_good_room API")
+app = FastAPI(title="guanhaoofang API")
 
 
 @app.middleware("http")

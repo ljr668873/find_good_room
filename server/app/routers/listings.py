@@ -58,8 +58,13 @@ def list_cities(db: Session = Depends(get_db)):
 
 
 @router.get("/filter-options", response_model=schemas.FilterOptionsOut)
-def filter_options(city: str, db: Session = Depends(get_db)):
-    base = [models.Listing.city == city, models.Listing.status == "active"]
+def filter_options(city: str | None = None, landlord_id: int | None = None, db: Session = Depends(get_db)):
+    # 房东主页（landlord_id）可不传 city：分享直达场景显示该房东全部房源，不受租客本地城市影响
+    base = [models.Listing.status == "active"]
+    if city is not None:
+        base.append(models.Listing.city == city)
+    if landlord_id is not None:
+        base.append(models.Listing.landlord_id == landlord_id)
 
     def group(col):
         rows = db.execute(
@@ -77,29 +82,30 @@ def list_listings(city: str, q: ListingFilters = Depends(), db: Session = Depend
     return _page(db, stmt, q)
 
 
-@router.get("/listings/{listing_id}", response_model=schemas.ListingOut)
-def listing_detail(listing_id: int, db: Session = Depends(get_db)):
-    listing = db.get(models.Listing, listing_id)
+@router.get("/listings/{slug}", response_model=schemas.ListingOut)
+def listing_detail(slug: str, db: Session = Depends(get_db)):
+    # 分享制：详情页按随机 slug 访问（防数字 id 枚举），举报等内部引用仍用数字 id
+    listing = db.scalar(select(models.Listing).where(models.Listing.share_slug == slug))
     if listing is None or listing.status != "active":
         raise HTTPException(404, "房源不存在或已下架")
     return listing
 
 
-@router.get("/landlords/{landlord_id}/listings", response_model=schemas.LandlordPage)
+@router.get("/landlords/{slug}/listings", response_model=schemas.LandlordPage)
 def landlord_listings(
-    landlord_id: int,
+    slug: str,
     q: ListingFilters = Depends(),
     city: str | None = None,
     db: Session = Depends(get_db),
 ):
-    landlord = db.get(models.User, landlord_id)
+    landlord = db.scalar(select(models.User).where(models.User.share_slug == slug))
     if landlord is None:
         raise HTTPException(404, "房东不存在")
-    stmt = _apply_filters(select(models.Listing), q, city, landlord_id)
+    stmt = _apply_filters(select(models.Listing), q, city, landlord.id)
     stmt = _keyword_stmt(stmt, q)
     result = _page(db, stmt, q)
     return schemas.LandlordPage(
-        landlord=schemas.UserBrief(id=landlord.id, username=landlord.username),
+        landlord=schemas.UserBrief(id=landlord.id, username=landlord.username, share_slug=landlord.share_slug),
         items=result.items,
         total=result.total,
         page=result.page,

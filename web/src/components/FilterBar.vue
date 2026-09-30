@@ -9,6 +9,8 @@ import { getFilterOptions } from "../api";
 
 const props = defineProps({
   filters: { type: Object, required: true },
+  // 房东主页传入：筛选项聚合限定在该房东名下
+  landlordId: { type: Number, default: null },
 });
 const emit = defineEmits(["change"]);
 
@@ -32,9 +34,11 @@ const LAYOUTS = ["单间", "一房一厅", "两房", "隔断间"];
 const DEPOSITS = ["押一付一", "押一付三", "押二付一"];
 
 async function loadOptions() {
-  if (!cityStore.current) return; // 城市未就绪时跳过，watch 会在就绪后重拉
+  // 房东主页：不按城市聚合（分享直达应显示该房东全部房源）；首页场景需等城市就绪
+  if (!props.landlordId && !cityStore.current) return;
   try {
-    const data = await getFilterOptions(cityStore.current);
+    const city = props.landlordId ? undefined : cityStore.current;
+    const data = await getFilterOptions(city, props.landlordId || undefined);
     villages.value = data.villages;
     metro.value = data.metro;
   } catch {
@@ -44,6 +48,8 @@ async function loadOptions() {
 
 onMounted(loadOptions);
 watch(() => cityStore.current, loadOptions);
+// 房东主页：landlord 信息异步到达后重拉聚合
+watch(() => props.landlordId, loadOptions);
 
 const rentValue = computed(() => {
   const min = props.filters.rent_min;

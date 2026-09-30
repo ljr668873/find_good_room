@@ -35,10 +35,17 @@ def main():
         db.commit()
 
         name_to_user = {}
-        for username in data["landlords"]:
-            user = models.User(username=username, password_hash=hash_password("demo123456"))
+        for entry in data["landlords"]:
+            # 兼容旧格式（纯用户名列表）；新格式带 share_slug 保持链接稳定
+            if isinstance(entry, str):
+                entry = {"username": entry}
+            user = models.User(
+                username=entry["username"],
+                password_hash=hash_password("demo123456"),
+                share_slug=entry.get("share_slug") or None,
+            )
             db.add(user)
-            name_to_user[username] = user
+            name_to_user[entry["username"]] = user
         db.flush()
 
         for item in data["listings"]:

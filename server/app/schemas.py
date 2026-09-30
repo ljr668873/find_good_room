@@ -26,11 +26,13 @@ class UserOut(BaseModel):
     id: int
     username: str
     is_admin: bool
+    share_slug: str | None = None
 
 
 class UserBrief(BaseModel):
     id: int
     username: str
+    share_slug: str | None = None
 
 
 class TokenOut(BaseModel):
@@ -76,6 +78,8 @@ class ListingOut(BaseModel):
 
     id: int
     landlord_id: int
+    share_slug: str | None = None
+    landlord_slug: str | None = None
     title: str
     city: str
     village: str

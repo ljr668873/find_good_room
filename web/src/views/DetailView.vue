@@ -34,7 +34,7 @@ const REPORT_REASONS = [
 onMounted(async () => {
   getAds().then((res) => (ads.value = res)).catch(() => {});
   try {
-    listing.value = await getListing(route.params.id);
+    listing.value = await getListing(route.params.slug);
   } catch {
     notFound.value = true;
   }
@@ -119,7 +119,7 @@ async function report(item) {
     <AdBanner :ads="ads" />
 
     <div class="panel links">
-      <span @click="router.push(`/landlord/${listing.landlord_id}`)">看 TA 的全部房源 →</span>
+      <span @click="router.push(`/landlord/${listing.landlord_slug}`)">看 TA 的全部房源 →</span>
       <span class="report" @click="showReport = true">举报</span>
     </div>
 

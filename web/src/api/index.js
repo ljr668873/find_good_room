@@ -24,7 +24,8 @@ http.interceptors.response.use(
 
 // 公开
 export const getCities = () => http.get("/cities");
-export const getFilterOptions = (city) => http.get("/filter-options", { params: { city } });
+export const getFilterOptions = (city, landlordId) =>
+  http.get("/filter-options", { params: { ...(city ? { city } : {}), ...(landlordId ? { landlord_id: landlordId } : {}) } });
 export const getListings = (params) => http.get("/listings", { params });
 export const getListing = (id) => http.get(`/listings/${id}`);
 export const getLandlordListings = (id, params) => http.get(`/landlords/${id}/listings`, { params });

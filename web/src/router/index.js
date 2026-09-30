@@ -3,8 +3,8 @@ import { useAuthStore } from "../stores/auth";
 
 const routes = [
   { path: "/", name: "home", component: () => import("../views/HomeView.vue") },
-  { path: "/listing/:id", name: "detail", component: () => import("../views/DetailView.vue") },
-  { path: "/landlord/:id", name: "landlord", component: () => import("../views/LandlordView.vue") },
+  { path: "/listing/:slug", name: "detail", component: () => import("../views/DetailView.vue") },
+  { path: "/landlord/:slug", name: "landlord", component: () => import("../views/LandlordView.vue") },
   { path: "/login", name: "login", component: () => import("../views/LoginView.vue") },
   { path: "/register", name: "register", component: () => import("../views/RegisterView.vue") },
   { path: "/publish", name: "publish", component: () => import("../views/PublishView.vue"), meta: { requiresAuth: true } },

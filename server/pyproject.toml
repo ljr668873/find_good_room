@@ -18,6 +18,7 @@ dependencies = [
     "bcrypt>=4.1",
     "pillow>=10",
     "python-multipart>=0.0.9",
+    "requests>=2.31",
 ]
 
 [tool.setuptools.packages.find]

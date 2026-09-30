@@ -31,6 +31,7 @@ def create_listing(
 ):
     listing = models.Listing(
         landlord_id=user.id,
+        landlord_slug=user.share_slug,
         title=_auto_title(data),
         **data.model_dump(exclude={"title"}),
     )

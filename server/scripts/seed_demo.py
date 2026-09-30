@@ -92,7 +92,7 @@ def rand_layout():
     return name
 
 
-def make_listing(landlord_id, village, photos_pairs, status):
+def make_listing(landlord_id, landlord_slug, village, photos_pairs, status):
     city, line, station, walk = VILLAGES[village]
     layout = rand_layout()
     a_min, a_max, r_min, r_max = LAYOUTS[layout]
@@ -107,6 +107,7 @@ def make_listing(landlord_id, village, photos_pairs, status):
     floor_total = random.randint(4, 9)
     return models.Listing(
         landlord_id=landlord_id,
+        landlord_slug=landlord_slug,
         title=f"{village}·{layout}·{rent}元",
         city=city,
         village=village,
@@ -155,7 +156,7 @@ def main():
                 village = villages[i % len(villages)]
                 # 每个房东最后一套 rented、倒数第二套 20% 概率 offline，其余 active
                 status = "rented" if i == count - 1 else ("offline" if i == count - 2 and random.random() < 0.5 else "active")
-                db.add(make_listing(landlord.id, village, photos_pairs, status))
+                db.add(make_listing(landlord.id, landlord.share_slug, village, photos_pairs, status))
                 stats[status] += 1
         db.commit()
         print(f"demo done: 房东 {len(LANDLORDS)} 个（密码均 demo123456），房源 {sum(stats.values())} 套 {stats}")

@@ -21,7 +21,7 @@ function pickCity(item) {
 <template>
   <div class="app">
     <header class="header">
-      <div class="brand" @click="$router.push('/')">找好房</div>
+      <div class="brand">管好房</div>
       <div class="header-right">
         <div v-if="authStore.user?.is_admin" class="mine" @click="$router.push('/admin')">管理</div>
         <div class="mine" @click="$router.push(authStore.token ? '/my/listings' : '/login')">
@@ -75,7 +75,6 @@ a { text-decoration: none; color: inherit; }
   font-size: 18px;
   font-weight: 700;
   color: #07c160;
-  cursor: pointer;
 }
 .header-right {
   display: flex;

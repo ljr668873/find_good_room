@@ -25,8 +25,8 @@ const filters = reactive({
 const landlord = ref(null);
 
 function params(page) {
+  // 分享直达：不按城市过滤，房东名下全部房源可见
   const p = { page, page_size: 20 };
-  if (cityStore.current) p.city = cityStore.current;
   if (filters.keyword) p.keyword = filters.keyword;
   if (filters.village) p.village = filters.village;
   if (filters.metro_station) p.metro_station = filters.metro_station;
@@ -41,7 +41,7 @@ function params(page) {
 
 // 解构取 ref（顶层 ref 模板自动解包）
 const { items, total, loading, finished, error, reset, onLoad } = useListingList(async (page) => {
-  const res = await getLandlordListings(route.params.id, params(page));
+  const res = await getLandlordListings(route.params.slug, params(page));
   landlord.value = res.landlord;
   return res;
 });
@@ -66,10 +66,9 @@ onMounted(async () => {
       </div>
     </div>
 
-    <FilterBar :filters="filters" @change="reload" />
+    <FilterBar :filters="filters" :landlord-id="landlord?.id" @change="reload" />
 
     <van-list
-      v-if="cityStore.current"
       v-model:loading="loading"
       v-model:error="error"
       :finished="finished"

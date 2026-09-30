@@ -5,7 +5,7 @@ defineProps({
 </script>
 
 <template>
-  <router-link class="card" :to="`/listing/${listing.id}`">
+  <router-link class="card" :to="`/listing/${listing.share_slug}`">
     <img class="cover" :src="listing.photos[0]" loading="lazy" alt="" />
     <div class="info">
       <div class="title van-ellipsis">{{ listing.title }}</div>
