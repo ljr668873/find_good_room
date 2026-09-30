@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1440px;
+    font-family: "PingFang SC", "Hiragino Sans GB", sans-serif;
+    background: linear-gradient(175deg, #0b9d5c 0%, #07c160 34%, #f6fffa 58%, #ffffff 100%);
+    overflow: hidden; position: relative;
+  }
+  .deco-circle { position: absolute; border-radius: 50%; background: rgba(255,255,255,.14); }
+  .c1 { width: 500px; height: 500px; top: -180px; right: -140px; }
+  .c2 { width: 300px; height: 300px; top: 240px; left: -120px; }
+
+  /* ---- 标题 ---- */
+  .head { text-align: center; padding-top: 64px; position: relative; }
+  .badge {
+    display: inline-block; background: #fff; color: #07c160;
+    font-size: 30px; font-weight: 700; padding: 10px 34px; border-radius: 40px;
+    letter-spacing: 4px;
+  }
+  .title { font-size: 96px; font-weight: 900; color: #fff; margin-top: 26px; letter-spacing: 6px; text-shadow: 0 6px 24px rgba(0,0,0,.18); }
+  .subtitle { font-size: 40px; color: #eafff3; margin-top: 14px; letter-spacing: 10px; }
+
+  /* ---- 手机截图区 ---- */
+  .phones { position: relative; height: 640px; margin-top: 30px; }
+  .phone {
+    position: absolute; width: 296px; height: 620px;
+    background: #111; border-radius: 44px; padding: 12px;
+    box-shadow: 0 24px 60px rgba(6, 78, 44, .35);
+  }
+  .phone .notch { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 120px; height: 22px; background: #111; border-radius: 0 0 14px 14px; z-index: 3; }
+  .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 34px; display: block; }
+  .p-main { left: 392px; top: 0; z-index: 5; transform: scale(1.06); }
+  .p-left { left: 88px; top: 60px; z-index: 3; transform: rotate(-7deg); }
+  .p-right { left: 696px; top: 60px; z-index: 3; transform: rotate(7deg); }
+  .phone-tag {
+    position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
+    background: #07c160; color: #fff; font-size: 26px; font-weight: 700;
+    padding: 8px 26px; border-radius: 30px; white-space: nowrap; z-index: 6;
+    box-shadow: 0 6px 18px rgba(7,193,96,.4);
+  }
+
+  /* ---- 卖点 ---- */
+  .points { margin: 66px 90px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px; }
+  .point {
+    background: #fff; border-radius: 22px; padding: 24px 28px;
+    display: flex; align-items: center; gap: 18px;
+    box-shadow: 0 8px 28px rgba(7, 193, 96, .12);
+  }
+  .point .icon {
+    width: 52px; height: 52px; border-radius: 50%; background: #07c160;
+    color: #fff; font-size: 30px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .point .txt b { display: block; font-size: 34px; color: #1a1a1a; }
+  .point .txt span { font-size: 24px; color: #888; }
+
+  /* ---- 底部 CTA ---- */
+  .cta {
+    position: absolute; bottom: 44px; left: 90px; right: 90px;
+    background: #111c17; border-radius: 28px; padding: 30px 40px;
+    display: flex; align-items: center; gap: 32px;
+  }
+  .qr {
+    width: 128px; height: 128px; background: #fff; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: #999; font-size: 20px; text-align: center; flex-shrink: 0;
+  }
+  .cta .words { flex: 1; color: #fff; }
+  .cta .words .big { font-size: 42px; font-weight: 900; letter-spacing: 2px; }
+  .cta .words .big em { color: #35d07f; font-style: normal; }
+  .cta .words .small { font-size: 26px; color: #9fb5aa; margin-top: 10px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+  <div class="deco-circle c1"></div>
+  <div class="deco-circle c2"></div>
+
+  <div class="head">
+    <span class="badge">房东 · 中介 · 二房东 快来入驻吧</span>
+    <div class="title">便捷管理你的房源<br></div>
+    <div class="subtitle">3 分钟上架 · 租客电话直接打给你</div>
+  </div>
+
+  <div class="phones">
+    <div class="phone p-left"><div class="notch"></div><img src="shot-publish.png"></div>
+    <div class="phone p-main"><div class="notch"></div><img src="shot-home.png"><span class="phone-tag">租客精准找房</span></div>
+    <div class="phone p-right"><div class="notch"></div><img src="shot-my.png"><span class="phone-tag">房源一键管理</span></div>
+  </div>
+
+  <div class="points">
+    <div class="point"><div class="icon">✓</div><div class="txt"><b>3 分钟发布</b><span>手机拍照就能发</span></div></div>
+    <div class="point"><div class="icon">✓</div><div class="txt"><b>租客直联</b><span>电话直达 无中间商</span></div></div>
+    <div class="point"><div class="icon">✓</div><div class="txt"><b>精准筛选</b><span>按村名地铁价格找房</span></div></div>
+  </div>
+
+  <div class="cta">
+    <div class="words">
+      <div class="big">手机浏览器打开 <em>找好房</em></div>
+      <div class="small">房东登录 → 发布房源 → 坐等电话</div>
+    </div>
+  </div>
+</body>
+</html>

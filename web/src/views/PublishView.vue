@@ -44,16 +44,57 @@ const form = ref({
   title: "",
 });
 
-// 照片：existing = 服务端已有（编辑/复制时回读，[封面缩略图, ...原图]）；newPairs = 本次新传
-const existingPhotos = ref([]);
-const newPairs = ref([]);
+// 照片：fileList 统一管理（编辑回读的旧图 + 新上传），第一张即封面，可删除可重排拖入
 const fileList = ref([]);
 
 const finalPhotos = computed(() => {
-  const origs = [...existingPhotos.value.slice(1), ...newPairs.value.map((p) => p.orig)];
-  const thumb = existingPhotos.value[0] || newPairs.value[0]?.thumb;
-  return origs.length && thumb ? [thumb, ...origs] : [];
+  if (!fileList.value.length) return [];
+  const first = fileList.value[0];
+  // photos 约定：[封面缩略图, ...原图]；旧图非首位没有缩略图文件时用原图兜底
+  return [first.thumbUrl || first.url, ...fileList.value.map((i) => i.url)];
 });
+
+async function uploadOne(rawFile, item) {
+  const fd = new FormData();
+  fd.append("files", rawFile);
+  try {
+    const res = await uploadPhotos(fd);
+    if (item) {
+      item.url = res.photos[1];
+      item.thumbUrl = res.photos[0];
+      item.status = "done";
+      item.message = "";
+    } else {
+      fileList.value.push({ url: res.photos[1], thumbUrl: res.photos[0] });
+    }
+  } catch {
+    if (item) {
+      item.status = "failed";
+      item.message = "上传失败";
+    }
+    /* 拦截器已 toast */
+  }
+}
+
+const dragActive = ref(false);
+
+async function afterRead(files) {
+  const list = Array.isArray(files) ? files : [files];
+  for (const f of list) {
+    f.status = "uploading";
+    f.message = "上传中";
+    uploadOne(f.file, f);
+  }
+}
+
+async function onDrop(e) {
+  dragActive.value = false;
+  const files = [...e.dataTransfer.files].filter((f) => f.type.startsWith("image/"));
+  if (!files.length) return;
+  for (const f of files) {
+    await uploadOne(f);
+  }
+}
 
 // ---- 弹层选择器 ----
 const showCityPicker = ref(false);
@@ -87,32 +128,6 @@ function onDepositConfirm({ selectedOptions }) {
 function onDateConfirm({ selectedValues }) {
   form.value.available_date = selectedValues.join("-");
   showDatePicker.value = false;
-}
-
-// ---- 照片上传 ----
-async function afterRead(files) {
-  const list = Array.isArray(files) ? files : [files];
-  for (const file of list) {
-    file.status = "uploading";
-    file.message = "上传中";
-    try {
-      const fd = new FormData();
-      fd.append("files", file.file);
-      const res = await uploadPhotos(fd);
-      newPairs.value.push({ thumb: res.photos[0], orig: res.photos[1] });
-      file.status = "done";
-      file.url = res.photos[1];
-      file.thumbUrl = res.photos[0];
-    } catch {
-      file.status = "failed";
-      file.message = "上传失败";
-    }
-  }
-}
-
-function onRemove(file) {
-  const orig = file.url || file.origUrl;
-  newPairs.value = newPairs.value.filter((p) => p.orig !== orig);
 }
 
 // ---- 分步校验 ----
@@ -214,7 +229,11 @@ onMounted(async () => {
       rent: String(data.rent),
       walk_minutes: data.walk_minutes == null ? "" : String(data.walk_minutes),
     };
-    existingPhotos.value = data.photos;
+    // 旧图回读进统一 fileList：photos = [封面缩略图, ...原图]，首图带缩略图
+    fileList.value = data.photos.slice(1).map((p, i) => ({
+      url: p,
+      thumbUrl: i === 0 ? data.photos[0] : null,
+    }));
   } catch {
     router.replace("/my/listings");
   }
@@ -288,18 +307,21 @@ onMounted(async () => {
     <!-- 第 3 步 -->
     <div v-show="step === 2">
       <van-cell-group inset title="照片（第一张为封面，最多 9 张）">
-        <div v-if="existingPhotos.length" class="existing">
-          <img v-for="(p, i) in existingPhotos.slice(1)" :key="p" :src="p" class="existing-img" alt="" />
-          <div class="existing-tip">已有照片（编辑时不支持删改）</div>
-        </div>
-        <div class="uploader-wrap">
+        <div
+          class="drop-zone"
+          @dragover.prevent="dragActive = true"
+          @dragleave.prevent="dragActive = false"
+          @drop.prevent="onDrop($event)"
+        >
           <van-uploader
             v-model="fileList"
             :after-read="afterRead"
-            :max-count="9 - existingPhotos.length + 1"
+            :max-count="9"
             multiple
-            @delete="onRemove"
+            deletable
+            upload-text="点击选择"
           />
+          <div class="drop-tip" :class="{ active: dragActive }">把图片拖到这里即可上传</div>
         </div>
       </van-cell-group>
 
@@ -380,26 +402,24 @@ onMounted(async () => {
 .publish {
   padding-bottom: 32px;
 }
-.existing {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 16px 0;
+.drop-zone {
+  padding: 12px 16px 16px;
+  border-radius: 8px;
 }
-.existing-img {
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-.existing-tip {
-  width: 100%;
+.drop-tip {
+  margin-top: 10px;
+  text-align: center;
   font-size: 12px;
   color: #969799;
-  padding-top: 4px;
+  border: 1px dashed #dcdee0;
+  border-radius: 6px;
+  padding: 8px 0;
+  transition: all 0.2s;
 }
-.uploader-wrap {
-  padding: 12px 16px;
+.drop-tip.active {
+  color: #07c160;
+  border-color: #07c160;
+  background: #f0fff6;
 }
 
 .city-picker {
