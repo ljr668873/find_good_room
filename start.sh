@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 
 # ---- 可通过环境变量覆盖本地 MySQL 连接 ----
 DB_HOST="${DB_HOST:-127.0.0.1}"
-DB_PORT="${DB_PORT:-3306}"
+DB_PORT="${DB_PORT:-3307}"
 DB_USER="${DB_USER:-root}"
 DB_PASSWORD="${DB_PASSWORD:-Root@123}"
 DB_NAME="${DB_NAME:-find_good_room}"
